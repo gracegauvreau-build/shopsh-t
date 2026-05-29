@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Shop Sh*t — personal buy planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.2.0/dist/tabler-icons.min.css" />
+<style>
+  :root{
+    --bg:#faf9f7; --surface:#ffffff; --surface-2:#f3f1ec; --line:rgba(0,0,0,0.10);
+    --line-2:rgba(0,0,0,0.18); --text:#23211e; --text-2:#6b6862; --text-3:#9b988f;
+    --pink:#D4537E; --pink-bg:#FBEAF0; --pink-dk:#72243E;
+    --radius:12px; --radius-lg:16px; --radius-xl:22px;
+    --danger:#A32D2D; --warn:#854F0B; --ok:#0F6E56;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#171614; --surface:#201e1b; --surface-2:#2a2825; --line:rgba(255,255,255,0.12);
+      --line-2:rgba(255,255,255,0.22); --text:#f0eee9; --text-2:#a8a49c; --text-3:#75726b; }
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; padding:0; background:var(--bg); font-family:'Inter',system-ui,sans-serif; color:var(--text); }
+  body{ display:flex; justify-content:center; min-height:100vh; }
+  .phone{ width:100%; max-width:420px; background:var(--surface); display:flex; flex-direction:column;
+    min-height:100vh; position:relative; overflow:hidden; }
+  @media(min-width:440px){ .phone{ margin:18px 0; min-height:calc(100vh - 36px); border-radius:28px;
+    border:0.5px solid var(--line-2); box-shadow:0 8px 40px rgba(0,0,0,0.12); overflow:hidden; } }
+  .hd{ padding:20px 18px 15px; }
+  .hd .kick{ font-size:11px; letter-spacing:0.6px; margin:0; }
+  .hd h1{ font-size:22px; font-weight:500; margin:2px 0 0; }
+  .scroll{ flex:1; overflow-y:auto; padding:14px; padding-bottom:90px; }
+  .chips{ display:flex; gap:6px; padding:0 14px 8px; overflow-x:auto; }
+  .chip{ font-size:12.5px; padding:6px 13px; white-space:nowrap; flex:0 0 auto; border:0.5px solid var(--line);
+    background:transparent; color:var(--text-2); border-radius:var(--radius); font-family:inherit; cursor:pointer; }
+  .chip.on{ background:var(--text); color:var(--surface); border-color:var(--text); }
+  .card{ background:var(--surface); border:0.5px solid var(--line); border-radius:var(--radius-lg); padding:12px 13px; }
+  .stat{ flex:1; background:var(--surface-2); border-radius:var(--radius); padding:10px 12px; }
+  .stat .l{ font-size:11.5px; color:var(--text-2); margin:0; }
+  .stat .v{ font-size:19px; font-weight:500; margin:1px 0 0; }
+  .tag{ font-size:11px; padding:2px 9px; border-radius:var(--radius); }
+  .btn{ font-family:inherit; font-size:12.5px; padding:8px 10px; border:0.5px solid var(--line-2);
+    background:transparent; color:var(--text); border-radius:var(--radius); cursor:pointer; }
+  .btn:active{ transform:scale(0.98); }
+  .btn-primary{ background:var(--pink); border-color:var(--pink); color:#fff; }
+  .btn-ghost-pink{ border-color:var(--pink); color:var(--pink-dk); }
+  @media(prefers-color-scheme:dark){ .btn-ghost-pink{ color:#ED93B1; } }
+  input,select,textarea{ font-family:inherit; font-size:14px; width:100%; padding:9px 11px; border-radius:var(--radius);
+    border:0.5px solid var(--line-2); background:var(--surface); color:var(--text); }
+  input:focus,select,textarea:focus{ outline:none; border-color:var(--pink); }
+  .nav{ position:absolute; bottom:0; left:0; right:0; background:var(--surface); border-top:0.5px solid var(--line);
+    display:flex; justify-content:space-around; align-items:center; padding:11px 0 14px; }
+  .nav i{ font-size:23px; color:var(--text-3); cursor:pointer; }
+  .nav i.on{ color:var(--text); }
+  .fab{ width:46px; height:46px; border-radius:50%; background:var(--pink); display:flex; align-items:center;
+    justify-content:center; margin-top:-24px; border:3px solid var(--surface); cursor:pointer; }
+  .fab i{ color:#fff !important; font-size:23px; }
+  .overlay{ position:absolute; inset:0; background:rgba(0,0,0,0.45); display:flex; align-items:flex-end;
+    z-index:20; }
+  .sheet{ background:var(--surface); width:100%; border-radius:22px 22px 0 0; padding:18px 18px 26px;
+    animation:rise 0.22s ease; }
+  @keyframes rise{ from{ transform:translateY(40px); opacity:0.4; } to{ transform:translateY(0); opacity:1; } }
+  .grab{ width:38px; height:4px; background:var(--line-2); border-radius:2px; margin:0 auto 14px; }
+  .bar{ height:9px; background:var(--surface-2); border-radius:5px; overflow:hidden; }
+  .seg{ display:flex; height:14px; border-radius:7px; overflow:hidden; }
+  .hide{ display:none !important; }
+  .toggle{ display:flex; gap:5px; background:var(--surface); border-radius:var(--radius); padding:3px; }
+  .toggle button{ font-family:inherit; font-size:12px; padding:5px 11px; border:none; border-radius:9px;
+    background:transparent; color:var(--text-2); cursor:pointer; }
+  .toggle button.on{ background:var(--pink); color:#fff; }
+  ::-webkit-scrollbar{ width:0; height:0; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div id="header" class="hd"></div>
+  <div id="chips" class="chips hide"></div>
+  <div id="screen" class="scroll"></div>
+  <div class="nav">
+    <i class="ti ti-home" data-nav="home" aria-label="Home"></i>
+    <i class="ti ti-calendar" data-nav="plan" aria-label="Plan"></i>
+    <div class="fab" id="fab" aria-label="Add item"><i class="ti ti-plus"></i></div>
+    <i class="ti ti-chart-bar" data-nav="stats" aria-label="Insights"></i>
+    <i class="ti ti-user" data-nav="profile" aria-label="Profile"></i>
+  </div>
+</div>
+
+<script>
+const CAT = {
+  Fashion:{light:'#FBEAF0',dark:'#72243E',solid:'#D4537E'},
+  Beauty:{light:'#EEEDFE',dark:'#3C3489',solid:'#7F77DD'},
+  Home:{light:'#E1F5EE',dark:'#085041',solid:'#1D9E75'},
+  Bridal:{light:'#FAECE7',dark:'#712B13',solid:'#D85A30'},
+  Tech:{light:'#E6F1FB',dark:'#0C447C',solid:'#378ADD'}
+};
+const PRIO = { need:['Need soon','#FCEBEB','#791F1F'], planning:['Planning','#FAEEDA','#633806'], want:['Want','#F1EFE8','#444441'] };
+const TODAY = new Date();
+
+let items = [
+  {id:1,name:'Reformation linen midi dress',link:'reformation.com',price:248,date:iso(18),cat:'Fashion',priority:'planning',note:'sage green, size 4 — engagement shoot',status:'open',promoted:false},
+  {id:2,name:'Augustinus Bader rich cream',link:'',price:185,date:iso(7),cat:'Beauty',priority:'need',note:'almost out, restock before prep',status:'open',promoted:true},
+  {id:3,name:'Bridesmaid robes (set of 4)',link:'etsy.com',price:140,date:iso(33),cat:'Bridal',priority:'planning',note:'blush',status:'open',promoted:false},
+  {id:4,name:'Ceramic ring dish',link:'',price:32,date:'',cat:'Home',priority:'want',note:'saw on a reel, vanity styling',status:'open',promoted:false},
+  {id:5,name:'Ring light for content',link:'amazon.com',price:89,date:iso(15),cat:'Tech',priority:'need',note:'current one flickers',status:'open',promoted:false},
+  {id:6,name:'Strappy heels for rehearsal',link:'',price:120,date:iso(70),cat:'Fashion',priority:'want',note:'',status:'open',promoted:false},
+  {id:7,name:'Wedding guest book',link:'',price:45,date:iso(50),cat:'Bridal',priority:'planning',note:'',status:'open',promoted:false},
+  {id:101,name:'Skims bodysuit',price:88,cat:'Fashion',status:'bought',promoted:false},
+  {id:102,name:'Dyson airwrap',price:600,cat:'Beauty',status:'bought',promoted:true},
+  {id:103,name:'Linen table runner',price:38,cat:'Home',status:'passed',promoted:false},
+  {id:104,name:'Designer dupe sunglasses',price:24,cat:'Fashion',status:'passed',promoted:false},
+  {id:105,name:'Veil',price:210,cat:'Bridal',status:'bought',promoted:false}
+];
+let nextId = 200, filter = 'All', screen = 'home', planView = 'timeline';
+
+function iso(addDays){ const d=new Date(TODAY); d.setDate(d.getDate()+addDays); return d.toISOString().slice(0,10); }
+const fmt = n => '$'+Math.round(n).toLocaleString();
+const daysTo = d => d ? Math.round((new Date(d+'T00:00') - new Date(TODAY.toISOString().slice(0,10)+'T00:00'))/864e5) : null;
+const open = () => items.filter(i=>i.status==='open');
+
+const headerEl = document.getElementById('header');
+const chipsEl = document.getElementById('chips');
+const screenEl = document.getElementById('screen');
+
+function setHeader(kick,kickColor,title,bg){
+  headerEl.style.background = bg;
+  headerEl.innerHTML = `<p class="kick" style="color:${kickColor}">${kick}</p><h1 style="color:${title.color}">${title.text}</h1>`;
+}
+
+function buildChips(){
+  chipsEl.classList.remove('hide');
+  chipsEl.innerHTML='';
+  ['All','Fashion','Beauty','Home','Bridal','Tech'].forEach(c=>{
+    const b=document.createElement('button');
+    b.className='chip'+(c===filter?' on':''); b.textContent=c;
+    b.onclick=()=>{ filter=c; renderHome(); };
+    chipsEl.appendChild(b);
+  });
+}
+
+function renderHome(){
+  setHeader('PERSONAL · PRIVATE','#993556',{text:'Shop Sh*t',color:'#4B1528'},'#FBEAF0');
+  buildChips();
+  const list = (filter==='All'?open():open().filter(i=>i.cat===filter))
+    .sort((a,b)=>{ const x=daysTo(a.date),y=daysTo(b.date); if(x==null)return 1; if(y==null)return -1; return x-y; });
+  const total = open().reduce((s,i)=>s+(+i.price||0),0);
+  const soon = open().filter(i=>{const d=daysTo(i.date); return d!=null&&d<=21;}).length;
+
+  let html = `<div style="display:flex; gap:8px; margin-bottom:12px;">
+    <div class="stat"><p class="l">items</p><p class="v">${open().length}</p></div>
+    <div class="stat"><p class="l">est. total</p><p class="v">${fmt(total)}</p></div>
+    <div class="stat"><p class="l">due soon</p><p class="v">${soon}</p></div>
+  </div><div style="display:flex; flex-direction:column; gap:10px;">`;
+
+  if(!list.length) html += `<div style="text-align:center; padding:3rem 1rem; color:var(--text-3);">
+    <i class="ti ti-shopping-bag" style="font-size:32px;"></i><p style="font-size:14px;">Nothing here — tap + to save something.</p></div>`;
+
+  list.forEach(i=>{
+    const c=CAT[i.cat], [pl,pf,pt]=PRIO[i.priority], d=daysTo(i.date);
+    let due='no date',dc='var(--text-3)';
+    if(d!=null){ if(d<=0){due='today';dc='var(--danger)';} else if(d<=21){due='in '+d+'d';dc='var(--warn)';} else {due='in '+d+'d';dc='var(--text-2)';}}
+    html += `<div class="card">
+      <div style="display:flex; gap:7px; align-items:center; margin-bottom:5px; flex-wrap:wrap;">
+        <span class="tag" style="background:${c.light}; color:${c.dark};">${i.cat}</span>
+        <span class="tag" style="background:${pf}; color:${pt};">${pl}</span>
+        ${i.promoted?`<span class="tag" style="background:#FBEAF0; color:#993556;"><i class="ti ti-check" style="font-size:11px;"></i> on ShopMy</span>`:''}
+      </div>
+      <p style="font-size:15px; font-weight:500; margin:0;">${i.name}</p>
+      ${i.note?`<p style="font-size:12.5px; color:var(--text-2); margin:3px 0 0;">${i.note}</p>`:''}
+      <div style="display:flex; gap:12px; align-items:center; margin-top:7px; font-size:12.5px;">
+        ${i.price?`<span style="font-weight:500;">${fmt(i.price)}</span>`:''}
+        <span style="color:${dc};"><i class="ti ti-calendar" style="font-size:13px;"></i> ${due}</span>
+        ${i.link?`<a href="https://${i.link}" target="_blank" style="color:var(--pink); text-decoration:none;"><i class="ti ti-external-link" style="font-size:13px;"></i></a>`:''}
+      </div>
+      <div style="display:flex; gap:7px; margin-top:10px;">
+        ${i.promoted
+          ? `<button class="btn" disabled style="flex:1; opacity:0.5;"><i class="ti ti-heart"></i> Live</button>`
+          : `<button class="btn btn-ghost-pink" style="flex:1;" onclick="promote(${i.id})"><i class="ti ti-arrow-up-right"></i> Promote</button>`}
+        <button class="btn" onclick="resolve(${i.id},'bought')"><i class="ti ti-check"></i> Bought</button>
+        <button class="btn" onclick="resolve(${i.id},'passed')"><i class="ti ti-x"></i> Pass</button>
+      </div></div>`;
+  });
+  html += `</div>`;
+  screenEl.innerHTML = html;
+}
+
+function renderPlan(){
+  setHeader('PLAN','#185FA5',{text:'When I need it',color:'#042C53'},'#E6F1FB');
+  chipsEl.classList.add('hide');
+  const grp={}; open().forEach(i=>{ const k=i.date?i.date.slice(0,7):'none'; (grp[k]=grp[k]||[]).push(i); });
+  Object.values(grp).forEach(a=>a.sort((x,y)=>(x.date||'9999').localeCompare(y.date||'9999')));
+  const keys=Object.keys(grp).sort((a,b)=>a==='none'?1:b==='none'?-1:a.localeCompare(b));
+  const mName=k=>k==='none'?'Someday / no date':new Date(k+'-02').toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+  let html=`<div class="toggle" style="background:var(--surface-2); margin-bottom:14px; width:fit-content;">
+    <button class="${planView==='timeline'?'on':''}" onclick="planView='timeline';renderPlan()">Timeline</button>
+    <button class="${planView==='grid'?'on':''}" onclick="planView='grid';renderPlan()">Month</button></div>`;
+
+  if(planView==='timeline'){
+    keys.forEach(k=>{
+      const list=grp[k], tot=list.reduce((s,i)=>s+i.price,0);
+      html+=`<div style="margin-bottom:18px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;">
+          <p style="font-size:15px; font-weight:500; margin:0;">${mName(k)}</p>
+          <span style="font-size:12.5px; color:var(--text-2);">${list.length} · ${fmt(tot)}</span></div>
+        <div style="border-left:2px solid var(--line-2); padding-left:14px; display:flex; flex-direction:column; gap:9px;">`;
+      list.forEach(i=>{
+        const c=CAT[i.cat], od=i.date&&new Date(i.date+'T00:00')<new Date(TODAY.toISOString().slice(0,10)+'T00:00');
+        html+=`<div class="card" style="position:relative; padding:9px 11px;">
+          <span style="position:absolute; left:-21px; top:13px; width:9px; height:9px; border-radius:50%; background:${od?'var(--danger)':'#378ADD'}; border:2px solid var(--surface);"></span>
+          <div style="display:flex; justify-content:space-between; gap:8px;">
+            <div style="flex:1; min-width:0;">
+              <p style="font-size:14px; font-weight:500; margin:0;">${i.name}</p>
+              <div style="display:flex; gap:7px; align-items:center; margin-top:4px;">
+                <span class="tag" style="background:${c.light}; color:${c.dark};">${i.cat}</span>
+                <span style="font-size:11.5px; color:var(--text-2);">${i.date?new Date(i.date+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'no date'}</span></div></div>
+            <span style="font-size:13px; font-weight:500; white-space:nowrap;">${fmt(i.price)}</span></div></div>`;
+      });
+      html+=`</div></div>`;
+    });
+  } else {
+    const k=iso(7).slice(0,7);
+    const byDay={}; (grp[k]||[]).forEach(i=>{ const dn=new Date(i.date+'T00:00').getDate(); (byDay[dn]=byDay[dn]||[]).push(i); });
+    const [yy,mm]=k.split('-').map(Number);
+    const first=new Date(yy,mm-1,1).getDay(), din=new Date(yy,mm,0).getDate();
+    html+=`<p style="font-size:15px; font-weight:500; margin:0 0 10px; text-align:center;">${mName(k)}</p>
+      <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-bottom:4px;">
+      ${['S','M','T','W','T','F','S'].map(d=>`<div style="text-align:center; font-size:10.5px; color:var(--text-3);">${d}</div>`).join('')}</div>
+      <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:3px;">`;
+    for(let s=0;s<first;s++) html+=`<div></div>`;
+    for(let d=1;d<=din;d++){ const has=byDay[d];
+      html+=`<div style="aspect-ratio:1; border-radius:8px; display:flex; flex-direction:column; align-items:center; padding-top:4px; font-size:11.5px; ${has?'background:#E6F1FB; color:#042C53; font-weight:500;':'color:var(--text-2);'}">
+        <span>${d}</span>${has?`<span style="width:5px; height:5px; border-radius:50%; background:#378ADD; margin-top:2px;"></span>`:''}</div>`;
+    }
+    html+=`</div><div style="margin-top:12px; display:flex; flex-direction:column; gap:7px;">`;
+    (grp[k]||[]).forEach(i=>{ const c=CAT[i.cat];
+      html+=`<div style="display:flex; align-items:center; gap:9px; font-size:13px;">
+        <span style="width:28px; text-align:center; font-weight:500; color:#185FA5;">${new Date(i.date+'T00:00').getDate()}</span>
+        <span style="flex:1;">${i.name}</span>
+        <span class="tag" style="background:${c.light}; color:${c.dark};">${i.cat}</span></div>`;
+    });
+    html+=`</div>`;
+  }
+  screenEl.innerHTML=html;
+}
+
+function renderStats(){
+  setHeader('INSIGHTS · ALL TIME','#0F6E56',{text:'What I actually bought',color:'#04342C'},'#E1F5EE');
+  chipsEl.classList.add('hide');
+  const resolved = items.filter(i=>i.status!=='open');
+  const bought = items.filter(i=>i.status==='bought');
+  const passed = items.filter(i=>i.status==='passed');
+  const saved = open();
+  const totalSaved = items.length;
+  const conv = totalSaved? Math.round(bought.length/totalSaved*100):0;
+  const spent = bought.reduce((s,i)=>s+i.price,0);
+  const avoided = passed.reduce((s,i)=>s+i.price,0);
+  const bp=Math.round(bought.length/totalSaved*100), sp=Math.round(saved.length/totalSaved*100), pp=100-bp-sp;
+
+  const byCat={};
+  items.forEach(i=>{ const c=byCat[i.cat]=byCat[i.cat]||{spent:0,bought:0,total:0}; c.total++; if(i.status==='bought'){c.bought++; c.spent+=i.price;} });
+  const cats=Object.entries(byCat).map(([k,v])=>({name:k,...v})).sort((a,b)=>b.spent-a.spent);
+  const max=Math.max(1,...cats.map(c=>c.spent));
+
+  let html=`<div class="card" style="background:var(--surface-2); border:none; margin-bottom:14px;">
+    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+      <p style="font-size:13px; color:var(--text-2); margin:0;">Of ${totalSaved} things I saved…</p>
+      <p style="font-size:13px; font-weight:500; margin:0; color:#0F6E56;">${conv}% converted</p></div>
+    <div class="seg" style="margin-bottom:10px;">
+      <div style="width:${bp}%; background:#1D9E75;"></div>
+      <div style="width:${sp}%; background:#FAC775;"></div>
+      <div style="width:${pp}%; background:#B4B2A9;"></div></div>
+    <div style="display:flex; justify-content:space-between; font-size:11.5px;">
+      <span style="color:#0F6E56;"><i class="ti ti-circle-check"></i> ${bought.length} bought</span>
+      <span style="color:#854F0B;"><i class="ti ti-bookmark"></i> ${saved.length} saved</span>
+      <span style="color:var(--text-2);"><i class="ti ti-x"></i> ${passed.length} passed</span></div></div>
+    <div style="display:flex; gap:10px; margin-bottom:16px;">
+      <div class="stat"><p class="l">Actually spent</p><p class="v">${fmt(spent)}</p></div>
+      <div class="stat"><p class="l">Saved by passing</p><p class="v" style="color:#0F6E56;">${fmt(avoided)}</p></div></div>
+    <p style="font-size:14px; font-weight:500; margin:0 0 9px;">Where it went, by category</p>
+    <div style="display:flex; flex-direction:column; gap:11px; margin-bottom:18px;">`;
+  cats.forEach(c=>{
+    html+=`<div><div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px;">
+      <span><span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:${CAT[c.name].solid}; margin-right:6px;"></span>${c.name}</span>
+      <span style="color:var(--text-2);">${fmt(c.spent)} · ${c.bought}/${c.total} bought</span></div>
+      <div class="bar"><div style="width:${Math.round(c.spent/max*100)}%; height:100%; background:${CAT[c.name].solid};"></div></div></div>`;
+  });
+  html+=`</div>`;
+  screenEl.innerHTML=html;
+}
+
+function renderProfile(){
+  setHeader('YOU','#534AB7',{text:'Settings',color:'#26215C'},'#EEEDFE');
+  chipsEl.classList.add('hide');
+  screenEl.innerHTML=`
+    <div class="card" style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+      <div style="width:46px; height:46px; border-radius:50%; background:#ED93B1; display:flex; align-items:center; justify-content:center; color:#4B1528; font-weight:500;">G</div>
+      <div><p style="font-size:15px; font-weight:500; margin:0;">Grace</p>
+      <p style="font-size:12.5px; color:var(--text-2); margin:0;">Private wishlist · just for you</p></div></div>
+    <div class="card" style="margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:14px;"><i class="ti ti-arrow-up-right" style="color:var(--pink);"></i> ShopMy connection</span>
+        <span class="tag" style="background:#E1F5EE; color:#0F6E56;">connected</span></div></div>
+    <div class="card" style="margin-bottom:12px;">
+      <p style="font-size:14px; font-weight:500; margin:0 0 10px;">Monthly budget cap</p>
+      <input type="range" min="0" max="2000" value="800" step="50" id="cap" style="padding:0;" />
+      <p style="font-size:13px; color:var(--text-2); margin:8px 0 0;" id="capOut">$800 / month — you'll get a nudge when due-soon items exceed this.</p></div>
+    <div class="card">
+      <p style="font-size:14px; font-weight:500; margin:0 0 8px;">Default collections</p>
+      <p style="font-size:12.5px; color:var(--text-2); margin:0; line-height:1.7;">Bridal era · Everyday edit · Beauty shelf</p></div>`;
+  const cap=document.getElementById('cap'), out=document.getElementById('capOut');
+  cap.oninput=()=>{ out.textContent=`$${(+cap.value).toLocaleString()} / month — you'll get a nudge when due-soon items exceed this.`; };
+}
+
+function promote(id){
+  const i=items.find(x=>x.id===id);
+  const ov=document.createElement('div'); ov.className='overlay';
+  ov.innerHTML=`<div class="sheet">
+    <div class="grab"></div>
+    <p style="font-size:17px; font-weight:500; margin:0 0 2px;">Promote to ShopMy</p>
+    <p style="font-size:12.5px; color:var(--text-2); margin:0 0 14px;">Turn this private save into a public storefront link.</p>
+    <div style="background:var(--surface-2); border-radius:12px; padding:10px 12px; margin-bottom:14px;">
+      <p style="font-size:14px; font-weight:500; margin:0;">${i.name}</p>
+      <p style="font-size:12px; color:var(--text-2); margin:2px 0 0;">${i.cat} · ${i.price?fmt(i.price):'—'}</p></div>
+    <p style="font-size:12px; color:var(--text-2); margin:0 0 5px;">Storefront collection</p>
+    <select style="margin-bottom:12px;"><option>Bridal era</option><option>Everyday edit</option><option>Beauty shelf</option><option>New collection…</option></select>
+    <p style="font-size:12px; color:var(--text-2); margin:0 0 5px;">Caption</p>
+    <textarea rows="2" style="resize:none; margin-bottom:16px;">obsessed with this — linking it for you all &#9825;</textarea>
+    <div style="display:flex; gap:10px;">
+      <button class="btn" style="flex:1; padding:11px;" id="pc">Not yet</button>
+      <button class="btn btn-primary" style="flex:1; padding:11px;" id="pg"><i class="ti ti-arrow-up-right"></i> Add to storefront</button></div></div>`;
+  document.querySelector('.phone').appendChild(ov);
+  ov.querySelector('#pc').onclick=()=>ov.remove();
+  ov.querySelector('#pg').onclick=()=>{ i.promoted=true; ov.remove(); render(); };
+  ov.onclick=e=>{ if(e.target===ov) ov.remove(); };
+}
+
+function resolve(id,status){ const i=items.find(x=>x.id===id); if(i) i.status=status; render(); }
+
+function openAdd(){
+  const ov=document.createElement('div'); ov.className='overlay';
+  const opts=Object.keys(CAT).map(c=>`<option>${c}</option>`).join('');
+  ov.innerHTML=`<div class="sheet">
+    <div class="grab"></div>
+    <p style="font-size:17px; font-weight:500; margin:0 0 14px;">Save something</p>
+    <input id="aName" placeholder="Item name" style="margin-bottom:9px;" />
+    <input id="aLink" placeholder="Paste link (optional)" style="margin-bottom:9px;" />
+    <div style="display:flex; gap:9px; margin-bottom:9px;">
+      <input id="aPrice" type="number" placeholder="Price $" />
+      <input id="aDate" type="date" /></div>
+    <div style="display:flex; gap:9px; margin-bottom:9px;">
+      <select id="aCat">${opts}</select>
+      <select id="aPrio"><option value="want">Just want it</option><option value="planning">Planning to buy</option><option value="need">Need soon</option></select></div>
+    <textarea id="aNote" rows="2" placeholder="Note — color, size, why you saved it…" style="resize:none; margin-bottom:16px;"></textarea>
+    <div style="display:flex; gap:10px;">
+      <button class="btn" style="flex:1; padding:11px;" id="ac">Cancel</button>
+      <button class="btn btn-primary" style="flex:1; padding:11px;" id="as"><i class="ti ti-check"></i> Save</button></div></div>`;
+  document.querySelector('.phone').appendChild(ov);
+  ov.querySelector('#aName').focus();
+  ov.querySelector('#ac').onclick=()=>ov.remove();
+  ov.onclick=e=>{ if(e.target===ov) ov.remove(); };
+  ov.querySelector('#as').onclick=()=>{
+    const name=ov.querySelector('#aName').value.trim(); if(!name) return;
+    items.push({ id:nextId++, name,
+      link:ov.querySelector('#aLink').value.trim().replace(/^https?:\/\//,''),
+      price:+ov.querySelector('#aPrice').value||0, date:ov.querySelector('#aDate').value,
+      cat:ov.querySelector('#aCat').value, priority:ov.querySelector('#aPrio').value,
+      note:ov.querySelector('#aNote').value.trim(), status:'open', promoted:false });
+    ov.remove(); screen='home'; render();
+  };
+}
+
+function render(){
+  document.querySelectorAll('.nav i[data-nav]').forEach(n=>n.classList.toggle('on',n.dataset.nav===screen));
+  if(screen==='home') renderHome();
+  else if(screen==='plan') renderPlan();
+  else if(screen==='stats') renderStats();
+  else if(screen==='profile') renderProfile();
+  screenEl.scrollTop=0;
+}
+
+document.querySelectorAll('.nav i[data-nav]').forEach(n=>n.onclick=()=>{ screen=n.dataset.nav; render(); });
+document.getElementById('fab').onclick=openAdd;
+render();
+</script>
+</body>
+</html>
